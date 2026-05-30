@@ -1,0 +1,38 @@
+services:
+  postgres-resource:
+    image: postgres:16-alpine
+    container_name: music-postgres-resource
+    environment:
+      POSTGRES_DB: resource_db
+      POSTGRES_USER: resource_user
+      POSTGRES_PASSWORD: resource_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_resource_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resource_user -d resource_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-song:
+    image: postgres:16-alpine
+    container_name: music-postgres-song
+    environment:
+      POSTGRES_DB: song_db
+      POSTGRES_USER: song_user
+      POSTGRES_PASSWORD: song_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_song_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U song_user -d song_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_resource_data:
+  postgres_song_data:
