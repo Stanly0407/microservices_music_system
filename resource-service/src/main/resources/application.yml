@@ -8,9 +8,9 @@ spring:
     init:
       mode: never
   datasource:
-    url: jdbc:postgresql://localhost:5433/resource_db
-    username: resource_user
-    password: resource_pass
+    url: jdbc:postgresql://localhost:5432/resource-db
+    username: postgres
+    password: postgres
   jpa:
     hibernate:
       ddl-auto: update

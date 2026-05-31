@@ -15,33 +15,44 @@ public final class RecordIdsParser {
 
     public static long parseStringId(String rawId) {
         if (rawId == null || !rawId.matches(VALID_ID_REG_EXP)) {
-            throw new BadRequestException("The provided ID is invalid");
+            throw invalidIdException(rawId);
         }
         try {
             return Long.parseLong(rawId);
         } catch (NumberFormatException ex) {
-            throw new BadRequestException("The provided ID is invalid");
+            throw invalidIdException(rawId);
         }
+    }
+
+    private static BadRequestException invalidIdException(String rawId) {
+        String value = rawId == null ? "null" : rawId;
+        return new BadRequestException("Invalid value '" + value + "' for ID. Must be a positive integer");
+    }
+
+    private static BadRequestException invalidCsvIdException(String rawId) {
+        String value = rawId == null ? "null" : rawId;
+        return new BadRequestException("Invalid ID format: '" + value + "'. Only positive integers are allowed");
     }
 
     public static List<Long> parseIdsCsv(String csv) {
         if (csv == null || csv.isBlank()) {
             throw new BadRequestException("CSV string format is invalid");
         }
-        if (csv.length() > MAX_CSV_LENGTH) {
-            throw new BadRequestException("CSV string format is invalid or exceeds length restrictions");
+        int actualLength = csv.length();
+        if (actualLength > MAX_CSV_LENGTH) {
+            throw new BadRequestException("CSV string is too long: received" + actualLength + " characters, maximum allowed is 200");
         }
         String[] parts = csv.split(",");
         List<Long> ids = new ArrayList<>();
         for (String part : parts) {
             String trimmed = part.trim();
             if (!trimmed.matches(VALID_ID_REG_EXP)) {
-                throw new BadRequestException("CSV string format is invalid");
+                throw invalidCsvIdException(trimmed);
             }
             try {
                 ids.add(Long.parseLong(trimmed));
             } catch (NumberFormatException ex) {
-                throw new BadRequestException("CSV string format is invalid");
+                throw invalidCsvIdException(trimmed);
             }
         }
         return ids;
