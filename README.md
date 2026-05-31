@@ -2,19 +2,6 @@
 
 Unified Gradle multi-module project (Spring Boot 3.4 / Java 21 / PostgreSQL).
 
-```
-mikroservices-music/
-├── gradle/wrapper/
-├── resource-service/
-├── song-service/
-├── gradlew
-├── gradlew.bat
-├── settings.gradle
-├── build.gradle
-├── compose.yaml
-└── .gitignore
-```
-
 | Service | Port | Base path |
 |---------|------|-----------|
 | Resource Service | 8081 | `/resources` |
@@ -31,13 +18,12 @@ Each microservice uses its own PostgreSQL 16 instance (Alpine), started from the
 
 | Service | Container | Host port | Database | User |
 |---------|-----------|-----------|----------|------|
-| Resource Service | `music-postgres-resource` | 5433 | `resource_db` | `resource_user` |
-| Song Service | `music-postgres-song` | 5434 | `song_db` | `song_user` |
+| Resource Service | `music-postgres-resource` | 5432      | `resource_db` | `resource_user` |
+| Song Service | `music-postgres-song` | 5433      | `song_db` | `song_user` |
 
 Schema management:
 
 - **Hibernate** `ddl-auto: update` — tables are created/updated automatically from JPA entities on startup.
-- **No** Flyway, Liquibase, `schema.sql`, or `data.sql` (`spring.sql.init.mode: never`).
 
 Start databases:
 

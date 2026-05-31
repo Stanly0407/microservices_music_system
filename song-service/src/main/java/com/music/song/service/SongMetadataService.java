@@ -12,6 +12,8 @@ import com.music.song.exception.NotFoundException;
 import com.music.song.repository.SongMetadataRepository;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.music.song.service.utils.SongIdParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +49,7 @@ public class SongMetadataService {
 
     @Transactional(readOnly = true)
     public SongMetadataResponse getById(String rawId) {
-        long id = IdParser.parsePositiveId(rawId);
+        long id = SongIdParser.parseStringId(rawId);
         return repository
                 .findById(id)
                 .map(SongMetadataResponse::from)
@@ -56,14 +58,14 @@ public class SongMetadataService {
 
     @Transactional
     public DeletedRecordIdsResponse deleteByIds(String idCsv) {
-        List<Long> ids = DeleteIdsParser.parse(idCsv);
-        List<Long> deleted = new ArrayList<>();
+        List<Long> ids = SongIdParser.parseIdsCsv(idCsv);
+        List<Long> deletedIds = new ArrayList<>();
         for (Long id : ids) {
             if (repository.existsById(id)) {
                 repository.deleteById(id);
-                deleted.add(id);
+                deletedIds.add(id);
             }
         }
-        return new DeletedRecordIdsResponse(deleted);
+        return new DeletedRecordIdsResponse(deletedIds);
     }
 }

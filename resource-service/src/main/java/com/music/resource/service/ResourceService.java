@@ -12,6 +12,9 @@ import com.music.resource.repository.Mp3ResourceRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.music.resource.service.utils.Mp3Util;
+import com.music.resource.service.utils.RecordIdsParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +46,7 @@ public class ResourceService {
 
     @Transactional(readOnly = true)
     public ResourceDataResponse getResourceData(String rawId) {
-        long id = IdParser.parsePositiveId(rawId);
+        long id = RecordIdsParser.parseStringId(rawId);
         Mp3Resource resource = repository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Resource with ID=" + id + " not found"));
@@ -52,33 +55,21 @@ public class ResourceService {
 
     @Transactional
     public DeletedRecordIdsResponse deleteByIds(String idCsv) {
-        List<Long> ids = DeleteIdsParser.parse(idCsv);
-        List<Long> deleted = new ArrayList<>();
+        List<Long> ids = RecordIdsParser.parseIdsCsv(idCsv);
+        List<Long> deletedIds = new ArrayList<>();
         for (Long id : ids) {
             if (repository.existsById(id)) {
                 songServiceClient.deleteSongMetadata(id);
                 repository.deleteById(id);
-                deleted.add(id);
+                deletedIds.add(id);
             }
         }
-        return new DeletedRecordIdsResponse(deleted);
+        return new DeletedRecordIdsResponse(deletedIds);
     }
 
     private void validateMp3Payload(byte[] data) {
-        if (data == null || data.length == 0) {
+        if (data == null || data.length == 0 || !Mp3Util.looksLikeMp3(data)) {
             throw new BadRequestException("The request body is invalid MP3");
         }
-        if (!looksLikeMp3(data)) {
-            throw new BadRequestException("The request body is invalid MP3");
-        }
-    }
-
-    private boolean looksLikeMp3(byte[] data) {
-        if (data.length >= 3 && data[0] == 'I' && data[1] == 'D' && data[2] == '3') {
-            return true;
-        }
-        return data.length >= 2
-                && (data[0] & 0xFF) == 0xFF
-                && ((data[1] & 0xE0) == 0xE0 || (data[1] & 0xF0) == 0xF0);
     }
 }
