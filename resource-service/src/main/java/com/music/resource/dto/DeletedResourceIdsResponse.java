@@ -2,6 +2,6 @@ package com.music.resource.dto;
 
 import java.util.List;
 
-public record DeletedRecordIdsResponse(List<Long> ids) {
+public record DeletedResourceIdsResponse(List<Long> ids) {
 }
 

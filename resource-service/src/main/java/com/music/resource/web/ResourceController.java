@@ -1,7 +1,7 @@
 package com.music.resource.web;
 
-import com.music.resource.dto.DeletedRecordIdsResponse;
-import com.music.resource.dto.RecordIdResponse;
+import com.music.resource.dto.DeletedResourceIdsResponse;
+import com.music.resource.dto.ResourceIdResponse;
 import com.music.resource.service.ResourceService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ public class ResourceController {
     }
 
     @PostMapping(consumes = "audio/mpeg")
-    public ResponseEntity<RecordIdResponse> upload(@RequestBody byte[] body) {
+    public ResponseEntity<ResourceIdResponse> upload(@RequestBody byte[] body) {
         return ResponseEntity.ok(resourceService.upload(body));
     }
 
@@ -37,7 +37,7 @@ public class ResourceController {
     }
 
     @DeleteMapping
-    public ResponseEntity<DeletedRecordIdsResponse> delete(@RequestParam("id") String idCsv) {
+    public ResponseEntity<DeletedResourceIdsResponse> delete(@RequestParam("id") String idCsv) {
         return ResponseEntity.ok(resourceService.deleteByIds(idCsv));
     }
 }

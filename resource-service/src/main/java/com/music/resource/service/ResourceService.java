@@ -2,8 +2,8 @@ package com.music.resource.service;
 
 import com.music.resource.client.SongServiceClient;
 import com.music.resource.domain.Mp3Resource;
-import com.music.resource.dto.DeletedRecordIdsResponse;
-import com.music.resource.dto.RecordIdResponse;
+import com.music.resource.dto.DeletedResourceIdsResponse;
+import com.music.resource.dto.ResourceIdResponse;
 import com.music.resource.dto.ResourceDataResponse;
 import com.music.resource.dto.SongMetadataPayload;
 import com.music.resource.exception.BadRequestException;
@@ -40,7 +40,7 @@ public class ResourceService {
         this.metadataExtractor = metadataExtractor;
         this.songServiceClient = songServiceClient;
     }
-    public RecordIdResponse upload(byte[] data) {
+    public ResourceIdResponse upload(byte[] data) {
         validateMp3Payload(data);
         Map<String, String> tags = metadataExtractor.extractTags(data);
         Mp3Resource resource = repository.save(new Mp3Resource(data));
@@ -51,7 +51,7 @@ public class ResourceService {
             compensateFailedUpload(resource.getId(), ex);
             throw new InternalServerErrorException();
         }
-        return new RecordIdResponse(resource.getId());
+        return new ResourceIdResponse(resource.getId());
     }
 
     private void compensateFailedUpload(long resourceId, Exception songServiceError) {
@@ -83,7 +83,7 @@ public class ResourceService {
     }
 
     @Transactional
-    public DeletedRecordIdsResponse deleteByIds(String idCsv) {
+    public DeletedResourceIdsResponse deleteByIds(String idCsv) {
         List<Long> ids = RecordIdsParser.parseIdsCsv(idCsv);
         List<Long> deletedIds = new ArrayList<>();
         for (Long id : ids) {
@@ -93,7 +93,7 @@ public class ResourceService {
                 deletedIds.add(id);
             }
         }
-        return new DeletedRecordIdsResponse(deletedIds);
+        return new DeletedResourceIdsResponse(deletedIds);
     }
 
     private void validateMp3Payload(byte[] data) {
