@@ -1,41 +1,36 @@
 package com.music.song.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.music.song.client.ResourceServiceClient;
 import com.music.song.domain.SongMetadata;
 import com.music.song.dto.DeletedRecordIdsResponse;
 import com.music.song.dto.RecordIdResponse;
 import com.music.song.dto.SongMetadataRequest;
 import com.music.song.dto.SongMetadataResponse;
-import com.music.song.exception.BadRequestException;
 import com.music.song.exception.ConflictException;
 import com.music.song.exception.NotFoundException;
 import com.music.song.repository.SongMetadataRepository;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.music.song.service.utils.SongIdParser;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SongMetadataService {
 
     private final SongMetadataRepository repository;
-    private final ResourceServiceClient resourceServiceClient;
 
     public SongMetadataService(
             SongMetadataRepository repository, ResourceServiceClient resourceServiceClient) {
         this.repository = repository;
-        this.resourceServiceClient = resourceServiceClient;
     }
 
     @Transactional
     public RecordIdResponse create(SongMetadataRequest request) {
         if (repository.existsById(request.id())) {
-            throw new ConflictException("Metadata for resource id " + request.id() + " already exists");
-        }
-        if (!resourceServiceClient.resourceExists(request.id())) {
-            throw new BadRequestException("Resource with id " + request.id() + " does not exist");
+            throw new ConflictException("Metadata for resource ID=" + request.id() + " already exists");
         }
         SongMetadata saved = repository.save(new SongMetadata(
                 request.id(),
@@ -53,7 +48,7 @@ public class SongMetadataService {
         return repository
                 .findById(id)
                 .map(SongMetadataResponse::from)
-                .orElseThrow(() -> new NotFoundException("Song metadata with ID=" + id + " not found"));
+                .orElseThrow(() -> new NotFoundException("Song metadata for ID=" + id + " not found"));
     }
 
     @Transactional

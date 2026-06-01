@@ -1,9 +1,9 @@
 package com.music.resource.service.utils;
 
-import com.music.resource.exception.BadRequestException;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.music.resource.exception.BadRequestException;
 
 public final class RecordIdsParser {
 
@@ -40,7 +40,7 @@ public final class RecordIdsParser {
         }
         int actualLength = csv.length();
         if (actualLength > MAX_CSV_LENGTH) {
-            throw new BadRequestException("CSV string is too long: received" + actualLength + " characters, maximum allowed is 200");
+            throw new BadRequestException("CSV string is too long: received " + actualLength + " characters, maximum allowed is 200");
         }
         String[] parts = csv.split(",");
         List<Long> ids = new ArrayList<>();
