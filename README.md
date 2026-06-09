@@ -1,147 +1,71 @@
 # Music Microservices
 
-Unified Gradle multi-module project (Spring Boot 3.4 / Java 21 / PostgreSQL).
+Spring Boot 3.4 / Java 21 / PostgreSQL 17 / Docker.
 
-| Service | Port | Base path |
-|---------|------|-----------|
-| Resource Service | 8081 | `/resources` |
-| Song Service | 8082 | `/songs` |
+| Service | Port | Database |
+|---------|------|----------|
+| Resource Service | 8081 | resource-db:5432 |
+| Song Service | 8082 | song-db:5432 |
 
-## Prerequisites
+---
 
-- Java 21
-- Docker (PostgreSQL only; services run locally with Gradle)
+## Quick Start
 
-## Database
+Docker (all services containerized):
+docker compose up -d --build
 
-Each microservice uses its own PostgreSQL 16 instance (Alpine), started from the root `compose.yaml`:
+Local development (DBs in Docker, services in IDE):
+docker compose up -d resource-db song-db 
 
-| Service | Container | Host port | Database | User |
-|---------|-----------|-----------|----------|------|
-| Resource Service | `music-postgres-resource` | 5432      | `resource_db` | `resource_user` |
-| Song Service | `music-postgres-song` | 5433      | `song_db` | `song_user` |
+Then run ResourceServiceApplication and SongServiceApplication in IntelliJ
 
-Schema management:
+---
 
-- **Hibernate** `ddl-auto: update` — tables are created/updated automatically from JPA entities on startup.
+## API
 
-Start databases:
+### Resource Service (8081)
 
-```bash
-docker compose up -d
-```
+- POST /resources — upload MP3 (Content-Type: audio/mpeg) → {"id": 1}
+- GET /resources/{id} — download MP3
+- DELETE /resources?id=1,2,3 → {"ids": [1,2,3]}
 
-Wait until both containers are healthy, then start the Spring Boot services.
+### Song Service (8082)
 
-## Run services locally
+- GET /songs/{id} → metadata (name, artist, album, duration, year)
+- DELETE /songs?id=1,2,3 → {"ids": [1,2,3]}
 
-Terminal 1 — Song Service (start first):
+Metadata is automatically extracted when MP3 is uploaded (Apache Tika).
 
-```bash
-gradlew :song-service:bootRun
-```
+---
 
-Terminal 2 — Resource Service:
+## Configuration
 
-```bash
-gradlew :resource-service:bootRun
-```
+- Services use localhost by default: localhost:5432, localhost:5433
+- In Docker, values from .env are used (service names: resource-db, song-db)
+- DBs initialized via SQL scripts (init-scripts/*/init.sql), data is ephemeral
 
-## Resource Service API
+---
 
-### Upload resource
+## Commands
 
-`POST /resources`  
-Content-Type: `audio/mpeg`  
-Body: raw MP3 bytes
-
-Response `200 OK`:
-
-```json
-{ "id": 1 }
-```
-
-### Get resource
-
-`GET /resources/{id}`  
-Returns MP3 bytes (`audio/mpeg`).
-
-### Delete resources
-
-`DELETE /resources?id=1,2`  
-CSV of positive integer IDs (max 200 characters). Missing IDs are ignored.
-
-Response `200 OK`:
-
-```json
-{ "ids": [1, 2] }
-```
-
-Deleting a resource cascades to Song Service metadata for that ID.
-
-## Song Service API
-
-### Create song metadata
-
-`POST /songs`
-
-```json
-{
-  "id": 1,
-  "name": "We are the champions",
-  "artist": "Queen",
-  "album": "News of the world",
-  "duration": "02:59",
-  "year": "1977"
-}
-```
-
-Response `200 OK`:
-
-```json
-{ "id": 1 }
-```
-
-`id` must match an existing resource. All fields are required and validated.
-
-### Get song metadata
-
-`GET /songs/{id}`
-
-Returns metadata for the resource ID:
-
-```json
-{
-  "id": 1,
-  "name": "We are the champions",
-  "artist": "Queen",
-  "album": "News of the world",
-  "duration": "02:59",
-  "year": "1977"
-}
-```
-
-### Delete song metadata
-
-`DELETE /songs?id=1,2`  
-CSV of positive integer IDs (max 200 characters). Missing IDs are ignored.
-
-Response `200 OK`:
-
-```json
-{ "ids": [1, 2] }
-```
-
-## Upload flow
-
-1. Resource Service stores the MP3 in PostgreSQL.
-2. Apache Tika (`Mp3Parser`) extracts ID3/XMP tags.
-3. Only `xmpDM:duration` is transformed (seconds → `mm:ss` with leading zeros).
-4. Tag values are mapped to song fields (`title` → `name`, etc.) without changing text.
-5. Resource Service calls `POST /songs` on Song Service.
-
-## Build
-
-```bash
+### Build locally
 gradlew build
-```
+
+### Run service locally
+gradlew :resource-service:bootRun
+
+### Stop Docker containers
+docker compose down
+
+### View logs
+docker compose logs -f resource-service
+
+---
+
+## Troubleshooting
+
+Error `exit code: 127` → rebuild: docker compose down && docker compose up -d --build
+
+Service can't connect to DB → wait 15 sec and restart: docker compose restart resource-service
+
+Port in use → netstat -ano | findstr :8081 (Windows) or lsof -i :8081 (Mac/Linux)

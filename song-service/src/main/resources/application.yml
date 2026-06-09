@@ -4,16 +4,13 @@ server:
 spring:
   application:
     name: song-service
-  sql:
-    init:
-      mode: never
   datasource:
-    url: jdbc:postgresql://localhost:5433/song-db
-    username: postgres
-    password: postgres
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/song-db}"
+    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
+    password: "${SPRING_DATASOURCE_PASSWORD:postgres}"
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate:
@@ -22,4 +19,4 @@ spring:
             non_contextual_creation: true
 
 resource-service:
-  base-url: http://localhost:8081
+  base-url: "${RESOURCE_SERVICE_BASE_URL:http://localhost:8081}"

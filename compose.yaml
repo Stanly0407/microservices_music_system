@@ -2,30 +2,49 @@ services:
   resource-db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: resource-db
-      POSTGRES_USER: postgres  # Default, can be omitted if unchanged
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${RESOURCE_DB_NAME}
+      POSTGRES_USER: ${RESOURCE_DB_USER}
+      POSTGRES_PASSWORD: ${RESOURCE_DB_PASSWORD}
     ports:
-      - "5432:5432"  # Maps container port 5432 to host port 5432
+      - "5432:5432"
+    volumes:
+      - ./init-scripts/resource-db:/docker-entrypoint-initdb.d
 
   song-db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: song-db
-      POSTGRES_USER: postgres  # Default, can be omitted if unchanged
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${SONG_DB_NAME}
+      POSTGRES_USER: ${SONG_DB_USER}
+      POSTGRES_PASSWORD: ${SONG_DB_PASSWORD}
     ports:
-      - "5433:5432"  # Maps container port 5432 to host port 5433 (to avoid conflict)
+      - "5433:5432"
+    volumes:
+      - ./init-scripts/song-db:/docker-entrypoint-initdb.d
 
-# Related settings for application.properties:
-#
-# For resource-service:
-# spring.datasource.url=jdbc:postgresql://localhost:5432/resource-db
-# spring.datasource.username=postgres
-# spring.datasource.password=postgres
-#
-# For song-service:
-# spring.datasource.url=jdbc:postgresql://localhost:5433/song-db
-# spring.datasource.username=postgres
-# spring.datasource.password=postgres
+  resource-service:
+    build:
+      context: .
+      dockerfile: resource-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: ${RESOURCE_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${RESOURCE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${RESOURCE_DB_PASSWORD}
+      SONG_SERVICE_BASE_URL: ${SONG_SERVICE_URL}
+    depends_on:
+      - resource-db
 
+  song-service:
+    build:
+      context: .
+      dockerfile: song-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: ${SONG_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SONG_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SONG_DB_PASSWORD}
+      RESOURCE_SERVICE_BASE_URL: ${RESOURCE_SERVICE_URL}
+    depends_on:
+      - song-db
