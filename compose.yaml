@@ -9,6 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - ./init-scripts/resource-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${RESOURCE_DB_USER} -d ${RESOURCE_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   song-db:
     image: postgres:17-alpine
@@ -20,6 +25,11 @@ services:
       - "5433:5432"
     volumes:
       - ./init-scripts/song-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SONG_DB_USER} -d ${SONG_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   resource-service:
     build:
@@ -33,7 +43,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${RESOURCE_DB_PASSWORD}
       SONG_SERVICE_BASE_URL: ${SONG_SERVICE_URL}
     depends_on:
-      - resource-db
+      resource-db:
+        condition: service_healthy
 
   song-service:
     build:
@@ -47,4 +58,5 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SONG_DB_PASSWORD}
       RESOURCE_SERVICE_BASE_URL: ${RESOURCE_SERVICE_URL}
     depends_on:
-      - song-db
+      song-db:
+        condition: service_healthy
