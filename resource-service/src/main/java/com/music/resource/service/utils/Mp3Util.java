@@ -1,10 +1,5 @@
 package com.music.resource.service.utils;
 
-import com.music.resource.exception.BadRequestException;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public final class Mp3Util {
 
     private Mp3Util() {
