@@ -31,32 +31,58 @@ services:
       timeout: 5s
       retries: 10
 
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
+    depends_on:
+      eureka-server:
+        condition: service_started
+
   resource-service:
     build:
       context: .
       dockerfile: resource-service/Dockerfile
-    ports:
-      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: ${RESOURCE_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${RESOURCE_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${RESOURCE_DB_PASSWORD}
-      SONG_SERVICE_BASE_URL: ${SONG_SERVICE_URL}
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
     depends_on:
       resource-db:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
 
   song-service:
     build:
       context: .
       dockerfile: song-service/Dockerfile
-    ports:
-      - "8082:8082"
     environment:
       SPRING_DATASOURCE_URL: ${SONG_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${SONG_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${SONG_DB_PASSWORD}
-      RESOURCE_SERVICE_BASE_URL: ${RESOURCE_SERVICE_URL}
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
     depends_on:
       song-db:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
+    deploy:
+      replicas: 2
