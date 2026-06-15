@@ -10,11 +10,11 @@ spring:
         - id: resource-service
           uri: lb://resource-service
           predicates:
-            - Path=/resources/
+            - Path=/resources/**
         - id: song-service
           uri: lb://song-service
           predicates:
-            - Path=/songs/
+            - Path=/songs/**
 
 eureka:
   client:
