@@ -26,3 +26,13 @@ eureka:
   instance:
     lease-renewal-interval-in-seconds: 5
     prefer-ip-address: true
+
+cloud:
+  aws:
+    s3:
+      endpoint: "${AWS_S3_ENDPOINT:http://localhost:4566}"
+      bucket: "${AWS_S3_BUCKET:mp3-resources}"
+    credentials:
+      access-key: "${AWS_ACCESS_KEY:test}"
+      secret-key: "${AWS_SECRET_KEY:test}"
+    region: "${AWS_REGION:us-east-1}"

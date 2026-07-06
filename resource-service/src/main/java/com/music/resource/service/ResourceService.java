@@ -31,32 +31,38 @@ public class ResourceService {
     private final Mp3ResourceRepository repository;
     private final Mp3MetadataExtractor metadataExtractor;
     private final SongServiceClient songServiceClient;
+    private final S3StorageService storageService;
 
     public ResourceService(
             Mp3ResourceRepository repository,
             Mp3MetadataExtractor metadataExtractor,
-            SongServiceClient songServiceClient) {
+            SongServiceClient songServiceClient,
+            S3StorageService storageService) {
         this.repository = repository;
         this.metadataExtractor = metadataExtractor;
         this.songServiceClient = songServiceClient;
+        this.storageService = storageService;
     }
+
     public ResourceIdResponse upload(byte[] data) {
         validateMp3Payload(data);
         Map<String, String> tags = metadataExtractor.extractTags(data);
-        Mp3Resource resource = repository.save(new Mp3Resource(data));
+        String storageKey = storageService.store(data);
+        Mp3Resource resource = repository.save(new Mp3Resource(storageKey));
         SongMetadataPayload songPayload = metadataExtractor.toSongMetadata(resource.getId(), tags);
         try {
             songServiceClient.createSongMetadata(songPayload);
         } catch (RestClientException ex) {
-            compensateFailedUpload(resource.getId(), ex);
+            compensateFailedUpload(resource.getId(), storageKey, ex);
             throw new InternalServerErrorException();
         }
         return new ResourceIdResponse(resource.getId());
     }
 
-    private void compensateFailedUpload(long resourceId, Exception songServiceError) {
+    private void compensateFailedUpload(long resourceId, String storageKey, Exception songServiceError) {
         for (int attempt = 1; attempt <= COMPENSATION_DELETE_ATTEMPTS; attempt++) {
             try {
+                storageService.delete(storageKey);
                 repository.deleteById(resourceId);
                 return;
             } catch (Exception deleteError) {
@@ -79,7 +85,8 @@ public class ResourceService {
         Mp3Resource resource = repository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Resource with ID=" + id + " not found"));
-        return new ResourceDataResponse(resource.getData());
+        byte[] data = storageService.retrieve(resource.getStorageKey());
+        return new ResourceDataResponse(data);
     }
 
     @Transactional
@@ -87,11 +94,12 @@ public class ResourceService {
         List<Long> ids = RecordIdsParser.parseIdsCsv(idCsv);
         List<Long> deletedIds = new ArrayList<>();
         for (Long id : ids) {
-            if (repository.existsById(id)) {
+            repository.findById(id).ifPresent(resource -> {
                 songServiceClient.deleteSongMetadata(id);
+                storageService.delete(resource.getStorageKey());
                 repository.deleteById(id);
                 deletedIds.add(id);
-            }
+            });
         }
         return new DeletedResourceIdsResponse(deletedIds);
     }
