@@ -1,4 +1,4 @@
-package com.music.resource.service;
+package com.music.processor.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

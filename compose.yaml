@@ -93,6 +93,16 @@ services:
       eureka-server:
         condition: service_started
 
+  resource-processor:
+    build:
+      context: .
+      dockerfile: resource-processor/Dockerfile
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
+    depends_on:
+      eureka-server:
+        condition: service_started
+
   song-service:
     build:
       context: .

@@ -1,19 +1,20 @@
-package com.music.resource.service;
+package com.music.processor.service;
 
-import com.music.resource.dto.SongMetadataPayload;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.music.processor.dto.SongMetadataPayload;
+import com.music.processor.exception.Mp3ProcessingException;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.sax.BodyContentHandler;
-import com.music.resource.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Component
 public class Mp3MetadataExtractor {
@@ -27,7 +28,7 @@ public class Mp3MetadataExtractor {
         try (InputStream inputStream = new ByteArrayInputStream(mp3Data)) {
             mp3Parser.parse(inputStream, new BodyContentHandler(), metadata, new ParseContext());
         } catch (IOException | SAXException | TikaException ex) {
-            throw new BadRequestException("The request body is invalid MP3");
+            throw new Mp3ProcessingException("Failed to parse MP3 file", ex);
         }
         return toTagMap(metadata);
     }
@@ -40,7 +41,7 @@ public class Mp3MetadataExtractor {
         String year = extractYear(tags);
 
         if (name == null || artist == null || album == null || duration == null || year == null) {
-            throw new BadRequestException("MP3 file does not contain required metadata tags");
+            throw new Mp3ProcessingException("MP3 file does not contain required metadata tags");
         }
         return new SongMetadataPayload(resourceId, name, artist, album, duration, year);
     }
