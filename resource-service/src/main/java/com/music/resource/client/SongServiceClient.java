@@ -1,7 +1,5 @@
 package com.music.resource.client;
 
-import com.music.resource.dto.SongMetadataPayload;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -12,16 +10,6 @@ public class SongServiceClient {
 
     public SongServiceClient(RestClient songServiceRestClient) {
         this.restClient = songServiceRestClient;
-    }
-
-    public void createSongMetadata(SongMetadataPayload payload) {
-        restClient
-                .post()
-                .uri("/songs")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(payload)
-                .retrieve()
-                .toBodilessEntity();
     }
 
     public void deleteSongMetadata(long resourceId) {

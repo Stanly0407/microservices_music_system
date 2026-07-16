@@ -16,20 +16,20 @@ public class Mp3Resource {
     private Long id;
 
     @Column(nullable = false)
-    private byte[] data;
+    private String storageKey;
 
     protected Mp3Resource() {
     }
 
-    public Mp3Resource(byte[] data) {
-        this.data = data;
+    public Mp3Resource(String storageKey) {
+        this.storageKey = storageKey;
     }
 
     public Long getId() {
         return id;
     }
 
-    public byte[] getData() {
-        return data;
+    public String getStorageKey() {
+        return storageKey;
     }
 }

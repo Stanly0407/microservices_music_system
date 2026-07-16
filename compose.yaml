@@ -31,6 +31,22 @@ services:
       timeout: 5s
       retries: 10
 
+  localstack:
+    image: localstack/localstack:3
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=${AWS_REGION}
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+    volumes:
+      - ./init-scripts/localstack:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   eureka-server:
     build:
       context: .
@@ -64,9 +80,26 @@ services:
       SPRING_DATASOURCE_USERNAME: ${RESOURCE_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${RESOURCE_DB_PASSWORD}
       EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+      AWS_REGION: ${AWS_REGION}
     depends_on:
       resource-db:
         condition: service_healthy
+      localstack:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  resource-processor:
+    build:
+      context: .
+      dockerfile: resource-processor/Dockerfile
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
+    depends_on:
       eureka-server:
         condition: service_started
 
