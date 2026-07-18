@@ -1,5 +1,8 @@
-package com.music.resource.client;
+package com.music.processor.client;
 
+import com.music.processor.dto.SongMetadataPayload;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
@@ -12,18 +15,20 @@ public class SongServiceClient {
 
     private final RestClient restClient;
 
-    public SongServiceClient(RestClient songServiceRestClient) {
-        this.restClient = songServiceRestClient;
+    public SongServiceClient(@Qualifier("songServiceRestClient") RestClient restClient) {
+        this.restClient = restClient;
     }
 
     @Retryable(
             retryFor = {HttpServerErrorException.class, ResourceAccessException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2))
-    public void deleteSongMetadata(long resourceId) {
+    public void createSongMetadata(SongMetadataPayload payload) {
         restClient
-                .delete()
-                .uri(uriBuilder -> uriBuilder.path("/songs").queryParam("id", resourceId).build())
+                .post()
+                .uri("/songs")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(payload)
                 .retrieve()
                 .toBodilessEntity();
     }

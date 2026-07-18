@@ -7,6 +7,7 @@ import com.music.resource.dto.ResourceIdResponse;
 import com.music.resource.dto.ResourceDataResponse;
 import com.music.resource.exception.BadRequestException;
 import com.music.resource.exception.NotFoundException;
+import com.music.resource.messaging.ResourceEventPublisher;
 import com.music.resource.repository.Mp3ResourceRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +23,17 @@ public class ResourceService {
     private final Mp3ResourceRepository repository;
     private final SongServiceClient songServiceClient;
     private final S3StorageService storageService;
+    private final ResourceEventPublisher eventPublisher;
 
     public ResourceService(
             Mp3ResourceRepository repository,
             SongServiceClient songServiceClient,
-            S3StorageService storageService) {
+            S3StorageService storageService,
+            ResourceEventPublisher eventPublisher) {
         this.repository = repository;
         this.songServiceClient = songServiceClient;
         this.storageService = storageService;
+        this.eventPublisher = eventPublisher;
     }
 
     public ResourceIdResponse upload(byte[] data) {
@@ -38,6 +42,7 @@ public class ResourceService {
         }
         String storageKey = storageService.store(data);
         Mp3Resource resource = repository.save(new Mp3Resource(storageKey));
+        eventPublisher.publishResourceUploaded(resource.getId());
         return new ResourceIdResponse(resource.getId());
     }
 
