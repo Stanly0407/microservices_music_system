@@ -127,6 +127,85 @@ docker compose down
 docker compose restart resource-service
 ```
 
+## Running Tests
+
+See [TESTING_STRATEGY.md](TESTING_STRATEGY.md) for the rationale behind each layer. All commands
+below run from the repo root (`./gradlew` in git bash, `.\gradlew.bat` in PowerShell).
+
+### 1. Unit Tests
+
+```bash
+./gradlew :resource-service:test --tests "com.music.resource.service.*" --tests "com.music.resource.web.*"
+./gradlew :resource-processor:test --tests "com.music.processor.service.*"
+./gradlew :song-service:test --tests "com.music.song.service.utils.*"
+```
+
+### 2. Integration Tests
+
+`SongMetadataRepositoryIT` is covered with a real Postgres via Zonky embedded-postgres.
+
+```bash
+./gradlew :song-service:test --tests "com.music.song.repository.*"
+```
+
+### 3. Component Tests
+
+Brings up the whole Spring context + embedded Postgres and runs the Cucumber scenarios in
+[song_metadata.feature](song-service/src/test/resources/features/song_metadata.feature).
+
+```bash
+./gradlew :song-service:test --tests "com.music.song.component.RunCucumberTest"
+```
+
+### 4. Contract Tests
+
+Consumer tests generate a pact file and can run standalone, without any other module:
+
+```bash
+./gradlew :song-service:test --tests "com.music.song.contract.*"
+./gradlew :resource-processor:test --tests "com.music.processor.contract.*"
+```
+
+Note: Provider verification in **resource-service** works differently: the `copyConsumerPacts` task
+is wired into `test` via `dependsOn` (see `resource-service/build.gradle`), and that dependency is
+not affected by `--tests` filtering. So *any* test run in resource-service first runs the full
+`song-service:test` (unit+integration+component+contract) and `resource-processor:test`:
+
+```bash
+./gradlew :resource-service:test --tests "com.music.resource.contract.*"
+```
+
+### 5. E2E (`e2e-tests` module)
+
+Drives uploading a song critical logic through the real stack
+(`api-gateway` -> `resource-service` -> RabbitMQ -> `resource-processor` -> `song-service`), no
+stubs. 
+
+```bash
+# 1. Start the full stack
+docker compose up -d --build
+
+# 2. Wait ~20-30s for services to register with Eureka (check http://localhost:8761),
+#    then run the suite
+./gradlew :e2e-tests:e2eTest
+```
+
+### Everything at once
+
+```bash
+# unit + integration + component + contract for every module (excludes e2e)
+./gradlew build
+
+# a single test class
+./gradlew :resource-service:test --tests "com.music.resource.service.ResourceServiceTest"
+```
+
+Results:
+- Console summary after the run
+- Per-class XML reports: `<module>/build/test-results/test/`
+- HTML report: `<module>/build/reports/tests/test/index.html` (e2e: `.../reports/tests/e2eTest/index.html`)
+
+
 ## Troubleshooting
 
 - **Service can't connect on startup** — wait ~20 s for dependencies (DB, RabbitMQ, Eureka) to become healthy, then `docker compose restart <service>`
