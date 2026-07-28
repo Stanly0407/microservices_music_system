@@ -36,21 +36,27 @@ docker compose down -v && docker compose up -d --build
 
 ## Run Locally (IDE + Docker infrastructure)
 
-Start infrastructure (non-Java services that can't run without Docker):
-```bash
-docker compose up -d resource-db song-db localstack rabbitmq
-```
+1. Start infrastructure (non-Java services that can't run without Docker):
+   ```bash
+   docker compose up -d resource-db song-db localstack rabbitmq
+   ```
 
-Then run all Spring Boot services in IDE or terminal. Start Eureka first — other services register with it on startup:
-```bash
-./gradlew :eureka-server:bootRun
-./gradlew :api-gateway:bootRun
-./gradlew :resource-service:bootRun
-./gradlew :resource-processor:bootRun
-./gradlew :song-service:bootRun
-```
+2. Run each service in its own terminal/IDE run configuration, in this order — later services
+   register with Eureka on startup and expect it already running:
+   ```bash
+   ./gradlew :eureka-server:bootRun
+   ./gradlew :api-gateway:bootRun
+   ./gradlew :resource-service:bootRun
+   ./gradlew :resource-processor:bootRun
+   ./gradlew :song-service:bootRun
+   ```
 
-Send requests through the gateway (`localhost:8080`) — it resolves service instances via Eureka.
+3. Confirm registration at http://localhost:8761 — you should see `API-GATEWAY`, `RESOURCE-SERVICE`,
+   `RESOURCE-PROCESSOR`, and `SONG-SERVICE` all listed as `UP`.
+
+4. Send requests through the gateway (`localhost:8080`) — it resolves service instances via Eureka.
+
+To stop: `Ctrl+C` each `bootRun` process, then `docker compose down` to stop the infra containers.
 
 ---
 
@@ -61,7 +67,10 @@ Send requests through the gateway (`localhost:8080`) — it resolves service ins
 | All registered services | http://localhost:8761 |
 | RabbitMQ queues and exchanges | http://localhost:15672 (guest / guest) |
 | LocalStack S3 health | http://localhost:4566/_localstack/health |
-| Docker container statuses | `docker compose ps` |
+| api-gateway health | http://localhost:8080/actuator/health |
+| eureka-server health | http://localhost:8761/actuator/health |
+| resource-service / song-service / resource-processor health | not published to host — use `docker compose exec <service> wget -qO- http://localhost:<port>/actuator/health`, or hit `http://localhost:<port>/actuator/health` directly when running that service locally via `bootRun` |
+| Docker container statuses (includes health) | `docker compose ps` |
 | Service logs | `docker compose logs -f resource-service` |
 
 ---
@@ -196,8 +205,6 @@ docker compose up -d --build
 # unit + integration + component + contract for every module (excludes e2e)
 ./gradlew build
 
-# a single test class
-./gradlew :resource-service:test --tests "com.music.resource.service.ResourceServiceTest"
 ```
 
 Results:
@@ -205,10 +212,3 @@ Results:
 - Per-class XML reports: `<module>/build/test-results/test/`
 - HTML report: `<module>/build/reports/tests/test/index.html` (e2e: `.../reports/tests/e2eTest/index.html`)
 
-
-## Troubleshooting
-
-- **Service can't connect on startup** — wait ~20 s for dependencies (DB, RabbitMQ, Eureka) to become healthy, then `docker compose restart <service>`
-- **Port in use** — `netstat -ano | findstr :8081` (Windows) or `lsof -i :8081` (Mac/Linux)
-- **S3 bucket missing** — resource-service creates it automatically on startup via the SDK; no AWS CLI needed
-- **DB schema mismatch after S3 migration** — run `docker compose down -v && docker compose up -d --build` to reinitialise with the current schema
