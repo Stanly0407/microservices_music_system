@@ -1,7 +1,7 @@
 package com.music.processor.dto;
 
 public record SongMetadataPayload(
-        Long resourceId,
+        Long id,
         String name,
         String artist,
         String album,
