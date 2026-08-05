@@ -8,4 +8,5 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'au.com.dius.pact.consumer:junit5:4.6.16'
 }

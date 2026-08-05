@@ -1,0 +1,37 @@
+dependencyManagement {
+    imports {
+        mavenBom 'io.cucumber:cucumber-bom:7.20.1'
+    }
+}
+
+dependencies {
+    testImplementation 'io.cucumber:cucumber-java'
+    testImplementation 'io.cucumber:cucumber-junit-platform-engine'
+    testImplementation 'org.junit.platform:junit-platform-suite'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.awaitility:awaitility'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+
+// This module has no application code — it only drives the already-running
+// docker-compose stack over HTTP — so there is nothing for Spring Boot to package.
+bootJar {
+    enabled = false
+}
+jar {
+    enabled = true
+}
+
+// E2E tests need the full docker-compose stack running and are slow, so they must never
+// run as a side effect of the plain `./gradlew build`/`check` (every other module's tests
+// do). The default `test` task is disabled; use the `e2eTest` task instead, explicitly.
+tasks.named('test') {
+    enabled = false
+}
+
+tasks.register('e2eTest', Test) {
+    description = 'Runs the end-to-end Cucumber suite against the running docker-compose stack.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+}
