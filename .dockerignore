@@ -1,0 +1,26 @@
+# Gradle build output / caches (rebuilt inside the image)
+.gradle/
+build/
+**/build/
+**/.gradle/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+README.md
+TESTING_STRATEGY.md
+
+# Env / secrets
+.env
+.env.*
