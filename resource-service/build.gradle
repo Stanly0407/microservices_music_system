@@ -4,6 +4,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
     implementation 'org.springframework.retry:spring-retry'
@@ -11,4 +12,20 @@ dependencies {
     implementation 'software.amazon.awssdk:s3'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'au.com.dius.pact.provider:junit5spring:4.6.16'
+}
+
+// Stub/pact propagation: consumers write their pact files under their own build/pacts
+// when their test suite runs; before verifying, pull the freshest copy of each consumer's
+// pact file here so provider verification always checks against what the consumer currently
+// expects, with no manual copy step and no Pact Broker/Docker dependency.
+tasks.register('copyConsumerPacts', Copy) {
+    dependsOn ':song-service:test', ':resource-processor:test'
+    into "${buildDir}/pacts-from-consumers"
+    from("${rootDir}/song-service/build/pacts") { into 'song-service' }
+    from("${rootDir}/resource-processor/build/pacts") { into 'resource-processor' }
+}
+
+tasks.named('test') {
+    dependsOn tasks.named('copyConsumerPacts')
 }
