@@ -34,4 +34,10 @@ tasks.register('e2eTest', Test) {
     group = 'verification'
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
+
+    // Forwarded so `-De2e.gatewayUrl=...` / `-De2e.eurekaUrl=...` on the gradle command line
+    // reach the forked test JVM — Gradle does not do this automatically. Defaults point at the
+    // docker-compose stack; override to point the same suite at a locally-running gateway.
+    systemProperty 'e2e.gatewayUrl', System.getProperty('e2e.gatewayUrl', 'http://localhost:8080')
+    systemProperty 'e2e.eurekaUrl', System.getProperty('e2e.eurekaUrl', 'http://localhost:8761')
 }
