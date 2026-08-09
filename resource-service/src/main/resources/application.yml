@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: resource-service
+  config:
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
   datasource:
     url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/resource-db}"
     username: "${SPRING_DATASOURCE_USERNAME:postgres}"
@@ -41,3 +43,9 @@ cloud:
       access-key: "${AWS_ACCESS_KEY:test}"
       secret-key: "${AWS_SECRET_KEY:test}"
     region: "${AWS_REGION:us-east-1}"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,refresh,info
