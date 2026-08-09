@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: config-server
+  rabbitmq:
+    host: "${RABBITMQ_HOST:localhost}"
+    port: "${RABBITMQ_PORT:5672}"
+    username: "${RABBITMQ_USER:guest}"
+    password: "${RABBITMQ_PASSWORD:guest}"
   cloud:
     config:
       server:
@@ -27,4 +32,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,busrefresh

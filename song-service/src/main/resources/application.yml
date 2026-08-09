@@ -6,6 +6,11 @@ spring:
     name: song-service
   config:
     import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+  rabbitmq:
+    host: "${RABBITMQ_HOST:localhost}"
+    port: "${RABBITMQ_PORT:5672}"
+    username: "${RABBITMQ_USER:guest}"
+    password: "${RABBITMQ_PASSWORD:guest}"
   datasource:
     url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/song-db}"
     username: "${SPRING_DATASOURCE_USERNAME:postgres}"
@@ -33,7 +38,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,refresh,info
+        include: health,refresh,busrefresh,info
 
 song:
   service:
