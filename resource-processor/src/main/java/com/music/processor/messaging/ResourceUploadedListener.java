@@ -23,14 +23,17 @@ public class ResourceUploadedListener {
     private final ResourceServiceClient resourceServiceClient;
     private final SongServiceClient songServiceClient;
     private final Mp3MetadataExtractor metadataExtractor;
+    private final ResourceProcessedEventPublisher resourceProcessedEventPublisher;
 
     public ResourceUploadedListener(
             ResourceServiceClient resourceServiceClient,
             SongServiceClient songServiceClient,
-            Mp3MetadataExtractor metadataExtractor) {
+            Mp3MetadataExtractor metadataExtractor,
+            ResourceProcessedEventPublisher resourceProcessedEventPublisher) {
         this.resourceServiceClient = resourceServiceClient;
         this.songServiceClient = songServiceClient;
         this.metadataExtractor = metadataExtractor;
+        this.resourceProcessedEventPublisher = resourceProcessedEventPublisher;
     }
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE)
@@ -42,6 +45,7 @@ public class ResourceUploadedListener {
             Map<String, String> tags = metadataExtractor.extractTags(mp3Data);
             SongMetadataPayload metadata = metadataExtractor.toSongMetadata(resourceId, tags);
             songServiceClient.createSongMetadata(metadata);
+            resourceProcessedEventPublisher.publishResourceProcessed(resourceId);
             log.info("Successfully processed resource: resourceId={}", resourceId);
         } catch (HttpClientErrorException.NotFound e) {
             log.warn("Resource not found in resource-service: resourceId={}", resourceId);

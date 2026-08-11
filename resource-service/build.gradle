@@ -10,6 +10,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     implementation 'org.springframework.retry:spring-retry'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
     implementation platform('software.amazon.awssdk:bom:2.29.52')
     implementation 'software.amazon.awssdk:s3'
     runtimeOnly 'org.postgresql:postgresql'
