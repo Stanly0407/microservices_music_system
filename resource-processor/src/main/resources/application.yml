@@ -11,6 +11,11 @@ spring:
     port: "${RABBITMQ_PORT:5672}"
     username: "${RABBITMQ_USER:guest}"
     password: "${RABBITMQ_PASSWORD:guest}"
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
 
 eureka:
   client:
@@ -25,4 +30,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,refresh,busrefresh,info
+        include: health,refresh,busrefresh,info,prometheus,metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0

@@ -48,12 +48,15 @@ public class ResourceService {
 
     public ResourceIdResponse upload(byte[] data) {
         if (data == null || data.length == 0 || !Mp3Util.looksLikeMp3(data)) {
+            log.warn("Rejected upload: invalid MP3 payload ({} bytes)", data == null ? 0 : data.length);
             throw new BadRequestException("The request body is invalid MP3");
         }
+        log.info("Received MP3 upload: {} bytes", data.length);
         StorageResponse staging = storageServiceClient.getStorage(StorageType.STAGING);
         String key = storageService.store(staging.bucket(), staging.path(), data);
         Mp3Resource resource = repository.save(new Mp3Resource(StorageType.STAGING, staging.bucket(), key));
         eventPublisher.publishResourceUploaded(resource.getId());
+        log.info("Resource staged: resourceId={}, bucket={}", resource.getId(), staging.bucket());
         return new ResourceIdResponse(resource.getId());
     }
 
@@ -64,6 +67,7 @@ public class ResourceService {
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Resource with ID=" + id + " not found"));
         byte[] data = storageService.retrieve(resource.getBucket(), resource.getPath());
+        log.info("Serving download for resourceId={}", id);
         return new ResourceDataResponse(data);
     }
 
@@ -79,6 +83,7 @@ public class ResourceService {
                 deletedIds.add(id);
             });
         }
+        log.info("Deleted resources: ids={}", deletedIds);
         return new DeletedResourceIdsResponse(deletedIds);
     }
 

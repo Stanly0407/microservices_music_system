@@ -30,6 +30,12 @@ subprojects {
         }
     }
 
+    dependencies {
+        implementation 'io.micrometer:micrometer-registry-prometheus'
+        implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+        implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+    }
+
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
     }

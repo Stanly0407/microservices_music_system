@@ -32,4 +32,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,busrefresh
+        include: health,info,busrefresh,prometheus,metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0

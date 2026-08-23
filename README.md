@@ -13,6 +13,10 @@ Spring Boot 3.4 / Java 21 / PostgreSQL 17 / RabbitMQ / LocalStack S3 / Docker.
 | eureka-server | 8761 | Service registry |
 | rabbitmq | 5672 / 15672 | Message broker (AMQP / management UI) |
 | localstack | 4566 | S3 emulator for MP3 binary storage |
+| elasticsearch | 9200 | Log storage (indexed by service, queried from Grafana) |
+| logstash | 5000 | Receives JSON logs (TCP) from every service and writes them to Elasticsearch |
+| prometheus | 9090 | Scrapes `/actuator/prometheus` from every service (via Eureka service discovery) |
+| grafana | 3000 | Dashboards for metrics (Prometheus) and logs (Elasticsearch) — `admin` / `admin` |
 
 ---
 
@@ -34,31 +38,6 @@ docker compose down -v && docker compose up -d --build
 
 ---
 
-## Run Locally (IDE + Docker infrastructure)
-
-1. Start infrastructure (non-Java services that can't run without Docker):
-   ```bash
-   docker compose up -d resource-db song-db localstack rabbitmq
-   ```
-
-2. Run each service in its own terminal/IDE run configuration, in this order — later services
-   register with Eureka on startup and expect it already running:
-   ```bash
-   ./gradlew :eureka-server:bootRun
-   ./gradlew :api-gateway:bootRun
-   ./gradlew :resource-service:bootRun
-   ./gradlew :resource-processor:bootRun
-   ./gradlew :song-service:bootRun
-   ```
-
-3. Confirm registration at http://localhost:8761 — you should see `API-GATEWAY`, `RESOURCE-SERVICE`,
-   `RESOURCE-PROCESSOR`, and `SONG-SERVICE` all listed as `UP`.
-
-4. Send requests through the gateway (`localhost:8080`) — it resolves service instances via Eureka.
-
-To stop: `Ctrl+C` each `bootRun` process, then `docker compose down` to stop the infra containers.
-
----
 
 ## Check Service Status
 
@@ -72,6 +51,36 @@ To stop: `Ctrl+C` each `bootRun` process, then `docker compose down` to stop the
 | resource-service / song-service / resource-processor health | not published to host — use `docker compose exec <service> wget -qO- http://localhost:<port>/actuator/health`, or hit `http://localhost:<port>/actuator/health` directly when running that service locally via `bootRun` |
 | Docker container statuses (includes health) | `docker compose ps` |
 | Service logs | `docker compose logs -f resource-service` |
+
+---
+
+## Observability: Logging, Monitoring, Tracing
+
+Every service logs structured JSON (via `logstash-logback-encoder`) both to the console and over
+TCP to Logstash, which indexes it into Elasticsearch as `app-logs-<service>-<date>`. Every service also
+exposes `/actuator/prometheus`, scraped by Prometheus through Eureka service discovery. Grafana is
+the single UI for both: a Prometheus data source for metrics dashboards, and an Elasticsearch data
+source for searching/correlating logs.
+
+| What | URL |
+|---|---|
+| Grafana (dashboards + log search) | http://localhost:3000 (admin / admin) |
+| Prometheus targets | http://localhost:9090/targets |
+| Elasticsearch | http://localhost:9200 |
+
+Pre-provisioned Grafana dashboards (folder "Music Microservices"):
+- **JVM Metrics** — heap memory, GC pause time, live threads, CPU usage, per service.
+- **API Gateway Performance** — request rate, p95 latency, error rate and status-code breakdown per
+  route.
+
+### Tracing
+
+Every incoming request gets a trace ID (Micrometer Tracing / Brave), automatically propagated
+through downstream `RestClient` calls and RabbitMQ messages, and injected into every log line via
+MDC (`traceId`, `spanId`). Uploading a file returns the trace ID in the `X-Trace-Id` response
+header — use it as a free-text search in Grafana's Elasticsearch Explore view (against the
+`app-logs-*` index, field `traceId`) to see that request's full path across api-gateway,
+resource-service, RabbitMQ, resource-processor and song-service in one query.
 
 ---
 
