@@ -79,19 +79,19 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
-    command: ["start-dev", "--http-port=9090", "--import-realm"]
+    command: ["start-dev", "--http-port=8090", "--import-realm"]
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME: http://keycloak:9090
+      KC_HOSTNAME: http://keycloak:8090
       KC_HOSTNAME_STRICT: "true"
       KC_HTTP_ENABLED: "true"
     ports:
-      - "8090:9090"
+      - "8090:8090"
     volumes:
       - ./keycloak/import:/opt/keycloak/data/import
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9090 || exit 1"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8090 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -193,7 +193,7 @@ services:
       AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
       AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       AWS_REGION: ${AWS_REGION}
-      KEYCLOAK_TOKEN_URI: http://keycloak:9090/realms/music-system/protocol/openid-connect/token
+      KEYCLOAK_TOKEN_URI: http://keycloak:8090/realms/music-system/protocol/openid-connect/token
       STORAGE_SERVICE_CLIENT_ID: ${STORAGE_SERVICE_CLIENT_ID}
       STORAGE_SERVICE_CLIENT_SECRET: ${STORAGE_SERVICE_CLIENT_SECRET}
       RABBITMQ_HOST: ${RABBITMQ_HOST}

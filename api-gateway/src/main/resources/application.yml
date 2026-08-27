@@ -15,7 +15,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: "${KEYCLOAK_ISSUER_URI:http://keycloak:9090/realms/music-system}"
+          issuer-uri: "${KEYCLOAK_ISSUER_URI:http://keycloak:8090/realms/music-system}"
   web:
     resources:
       add-mappings: false
