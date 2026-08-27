@@ -11,6 +11,7 @@ Spring Boot 3.4 / Java 21 / PostgreSQL 17 / RabbitMQ / LocalStack S3 / Docker.
 | resource-processor | 8083 | Listens for upload events, extracts MP3 metadata via Tika, saves to song-service |
 | song-service | 8082 | CRUD for song metadata (2 replicas) |
 | eureka-server | 8761 | Service registry |
+| keycloak | 8090 | OAuth2/OIDC authorization server — issues and validates JWTs for the Storage API |
 | rabbitmq | 5672 / 15672 | Message broker (AMQP / management UI) |
 | localstack | 4566 | S3 emulator for MP3 binary storage |
 | elasticsearch | 9200 | Log storage (indexed by service, queried from Grafana) |
@@ -81,6 +82,19 @@ MDC (`traceId`, `spanId`). Uploading a file returns the trace ID in the `X-Trace
 header — use it as a free-text search in Grafana's Elasticsearch Explore view (against the
 `app-logs-*` index, field `traceId`) to see that request's full path across api-gateway,
 resource-service, RabbitMQ, resource-processor and song-service in one query.
+
+---
+
+## Security (OAuth2 / JWT)
+
+The Storage API is protected with OAuth2/JWT, backed by a self-hosted Keycloak (realm
+`music-system`, auto-imported from [keycloak/import/realm-export.json](keycloak/import/realm-export.json)).
+Two realm roles exist:
+
+| Role | Access |
+|---|---|
+| `ADMIN` | `GET`, `POST`, `DELETE` `/storages` |
+| `USER` | `GET` `/storages` only. `POST`/`DELETE` `/storages` - return `403` |
 
 ---
 

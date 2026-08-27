@@ -24,7 +24,9 @@ public class RestClientConfig {
     }
 
     @Bean
-    RestClient storageServiceRestClient(@LoadBalanced RestClient.Builder builder) {
-        return builder.baseUrl("http://storage-service").build();
+    RestClient storageServiceRestClient(@LoadBalanced RestClient.Builder builder, BearerTokenInterceptor bearerTokenInterceptor) {
+        return builder.baseUrl("http://storage-service")
+                .requestInterceptor(bearerTokenInterceptor)
+                .build();
     }
 }

@@ -1,0 +1,74 @@
+{
+  "realm": "music-system",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "accessTokenLifespan": 1800,
+  "roles": {
+    "realm": [
+      { "name": "ADMIN", "description": "Full access to Storage API (GET, POST, DELETE)" },
+      { "name": "USER", "description": "Read-only access to Storage API (GET)" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "music-system-client",
+      "name": "Music System (Postman / end users)",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["*"]
+    },
+    {
+      "clientId": "resource-service-client",
+      "name": "resource-service (service-to-service calls to storage-service)",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "resource-service-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin-user",
+      "enabled": true,
+      "email": "admin-user@music-system.local",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "requiredActions": [],
+      "credentials": [
+        { "type": "password", "value": "admin-pass", "temporary": false }
+      ],
+      "realmRoles": ["ADMIN"]
+    },
+    {
+      "username": "regular-user",
+      "enabled": true,
+      "email": "regular-user@music-system.local",
+      "emailVerified": true,
+      "firstName": "Regular",
+      "lastName": "User",
+      "requiredActions": [],
+      "credentials": [
+        { "type": "password", "value": "user-pass", "temporary": false }
+      ],
+      "realmRoles": ["USER"]
+    },
+    {
+      "username": "service-account-resource-service-client",
+      "enabled": true,
+      "serviceAccountClientId": "resource-service-client",
+      "realmRoles": ["USER"]
+    }
+  ]
+}

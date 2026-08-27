@@ -77,6 +77,26 @@ services:
       timeout: 5s
       retries: 10
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    command: ["start-dev", "--http-port=9090", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: http://keycloak:9090
+      KC_HOSTNAME_STRICT: "true"
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8090:9090"
+    volumes:
+      - ./keycloak/import:/opt/keycloak/data/import
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9090 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
   eureka-server:
     build:
       context: .
@@ -134,6 +154,7 @@ services:
     environment:
       EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
       RABBITMQ_USER: ${RABBITMQ_USER}
@@ -150,6 +171,8 @@ services:
       eureka-server:
         condition: service_healthy
       config-server:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -170,6 +193,9 @@ services:
       AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
       AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       AWS_REGION: ${AWS_REGION}
+      KEYCLOAK_TOKEN_URI: http://keycloak:9090/realms/music-system/protocol/openid-connect/token
+      STORAGE_SERVICE_CLIENT_ID: ${STORAGE_SERVICE_CLIENT_ID}
+      STORAGE_SERVICE_CLIENT_SECRET: ${STORAGE_SERVICE_CLIENT_SECRET}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
       RABBITMQ_USER: ${RABBITMQ_USER}
@@ -193,6 +219,8 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
       storage-service:
         condition: service_healthy
       logstash:
@@ -208,6 +236,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${STORAGE_DB_PASSWORD}
       EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
       RABBITMQ_USER: ${RABBITMQ_USER}
@@ -226,6 +255,8 @@ services:
       eureka-server:
         condition: service_healthy
       config-server:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
