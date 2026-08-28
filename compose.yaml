@@ -179,6 +179,24 @@ services:
       logstash:
         condition: service_started
 
+  storage-ui:
+    build:
+      context: ./storage-ui
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+
   resource-service:
     build:
       context: .

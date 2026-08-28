@@ -12,6 +12,7 @@ Spring Boot 3.4 / Java 21 / PostgreSQL 17 / RabbitMQ / LocalStack S3 / Docker.
 | song-service | 8082 | CRUD for song metadata (2 replicas) |
 | eureka-server | 8761 | Service registry |
 | keycloak | 8090 | OAuth2/OIDC authorization server — issues and validates JWTs for the Storage API |
+| storage-ui | 4200 | Angular UI for the Storage API (login via Keycloak, view/add/delete storages) |
 | rabbitmq | 5672 / 15672 | Message broker (AMQP / management UI) |
 | localstack | 4566 | S3 emulator for MP3 binary storage |
 | elasticsearch | 9200 | Log storage (indexed by service, queried from Grafana) |

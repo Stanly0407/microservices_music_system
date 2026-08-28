@@ -1,0 +1,38 @@
+.storage-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.storage-form h3 {
+  width: 100%;
+  margin: 0 0 0.5rem;
+}
+
+.storage-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.storage-form input,
+.storage-form select {
+  padding: 0.4rem 0.5rem;
+}
+
+.storage-form button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.error {
+  width: 100%;
+  color: #b91c1c;
+  margin: 0;
+}

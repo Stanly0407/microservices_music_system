@@ -1,0 +1,28 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="storage-form">
+  <h3>Add storage</h3>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <label>
+    Type
+    <select formControlName="storageType">
+      @for (type of storageTypes; track type) {
+        <option [value]="type">{{ type }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Bucket
+    <input type="text" formControlName="bucket" placeholder="e.g. mp3-staging" />
+  </label>
+
+  <label>
+    Path
+    <input type="text" formControlName="path" placeholder="e.g. /staging" />
+  </label>
+
+  <button type="submit" [disabled]="submitting()">Add</button>
+</form>
