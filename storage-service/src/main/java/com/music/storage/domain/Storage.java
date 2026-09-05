@@ -1,4 +1,4 @@
-package com.music.resource.domain;
+package com.music.storage.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "mp3_resources")
-public class Mp3Resource {
+@Table(name = "storages")
+public class Storage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,13 +24,13 @@ public class Mp3Resource {
     @Column(nullable = false, length = 255)
     private String bucket;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 255)
     private String path;
 
-    protected Mp3Resource() {
+    protected Storage() {
     }
 
-    public Mp3Resource(StorageType storageType, String bucket, String path) {
+    public Storage(StorageType storageType, String bucket, String path) {
         this.storageType = storageType;
         this.bucket = bucket;
         this.path = path;
@@ -50,11 +50,5 @@ public class Mp3Resource {
 
     public String getPath() {
         return path;
-    }
-
-    public void moveTo(StorageType storageType, String bucket, String path) {
-        this.storageType = storageType;
-        this.bucket = bucket;
-        this.path = path;
     }
 }

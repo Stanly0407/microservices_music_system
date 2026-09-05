@@ -18,4 +18,9 @@ public class RestClientConfig {
     RestClient songServiceRestClient(@LoadBalanced RestClient.Builder builder) {
         return builder.baseUrl("http://song-service").build();
     }
+
+    @Bean
+    RestClient storageServiceRestClient(@LoadBalanced RestClient.Builder builder) {
+        return builder.baseUrl("http://storage-service").build();
+    }
 }

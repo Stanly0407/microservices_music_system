@@ -38,14 +38,38 @@ cloud:
   aws:
     s3:
       endpoint: "${AWS_S3_ENDPOINT:http://localhost:4566}"
-      bucket: "${AWS_S3_BUCKET:mp3-resources}"
     credentials:
       access-key: "${AWS_ACCESS_KEY:test}"
       secret-key: "${AWS_SECRET_KEY:test}"
     region: "${AWS_REGION:us-east-1}"
 
+storage:
+  stub:
+    staging:
+      bucket: "${STORAGE_STUB_STAGING_BUCKET:mp3-staging}"
+      path: "${STORAGE_STUB_STAGING_PATH:/staging}"
+    permanent:
+      bucket: "${STORAGE_STUB_PERMANENT_BUCKET:mp3-permanent}"
+      path: "${STORAGE_STUB_PERMANENT_PATH:/permanent}"
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      storageService:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,refresh,busrefresh,info
+        include: health,refresh,busrefresh,info,circuitbreakers,circuitbreakerevents
+  health:
+    circuitbreakers:
+      enabled: true
