@@ -1,0 +1,38 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: Prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+  - name: Elasticsearch
+    type: elasticsearch
+    uid: Elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "app-logs-*"
+    jsonData:
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      logMessageField: message
+      logLevelField: level
+      maxConcurrentShardRequests: 5
+    editable: true
+
+  - name: PostgreSQL - resource-db
+    type: postgres
+    uid: resource-db-postgres
+    access: proxy
+    url: resource-db:5432
+    database: resource-db
+    user: postgres
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1700
+    secureJsonData:
+      password: postgres
+    editable: true

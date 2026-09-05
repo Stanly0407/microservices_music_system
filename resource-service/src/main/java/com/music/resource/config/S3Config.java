@@ -8,9 +8,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 
 import java.net.URI;
 
@@ -19,9 +16,6 @@ public class S3Config {
 
     @Value("${cloud.aws.s3.endpoint}")
     private String endpoint;
-
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
 
     @Value("${cloud.aws.credentials.access-key}")
     private String accessKey;
@@ -34,7 +28,7 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
-        S3Client client = S3Client.builder()
+        return S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(
@@ -43,15 +37,5 @@ public class S3Config {
                         .pathStyleAccessEnabled(true)
                         .build())
                 .build();
-        ensureBucketExists(client);
-        return client;
-    }
-
-    private void ensureBucketExists(S3Client client) {
-        try {
-            client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
-        } catch (NoSuchBucketException e) {
-            client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-        }
     }
 }

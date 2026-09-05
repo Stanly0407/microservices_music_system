@@ -11,6 +11,11 @@ spring:
     port: "${RABBITMQ_PORT:5672}"
     username: "${RABBITMQ_USER:guest}"
     password: "${RABBITMQ_PASSWORD:guest}"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "${KEYCLOAK_ISSUER_URI:http://keycloak:8090/realms/music-system}"
   web:
     resources:
       add-mappings: false
@@ -29,6 +34,10 @@ spring:
           uri: lb://song-service
           predicates:
             - Path=/config-info
+        - id: storage-service
+          uri: lb://storage-service
+          predicates:
+            - Path=/storages/**
 
 eureka:
   client:
@@ -43,4 +52,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,refresh,busrefresh,info,gateway
+        include: health,refresh,busrefresh,info,gateway,prometheus,metrics
+  endpoint:
+    gateway:
+      access: unrestricted
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        spring.cloud.gateway.requests: true
+  tracing:
+    sampling:
+      probability: 1.0
