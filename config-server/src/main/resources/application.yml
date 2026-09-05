@@ -1,16 +1,23 @@
 server:
-  port: 8083
+  port: 8888
 
 spring:
   application:
-    name: resource-processor
-  config:
-    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+    name: config-server
   rabbitmq:
     host: "${RABBITMQ_HOST:localhost}"
     port: "${RABBITMQ_PORT:5672}"
     username: "${RABBITMQ_USER:guest}"
     password: "${RABBITMQ_PASSWORD:guest}"
+  cloud:
+    config:
+      server:
+        git:
+          uri: "${CONFIG_SERVER_GIT_URI:https://github.com/Stanly0407/microservices-music-system-config.git}"
+          default-label: main
+          clone-on-start: true
+          force-pull: true
+          timeout: 10
 
 eureka:
   client:
@@ -25,4 +32,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,refresh,busrefresh,info
+        include: health,info,busrefresh

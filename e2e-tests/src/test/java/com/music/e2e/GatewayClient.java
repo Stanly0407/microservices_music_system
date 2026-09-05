@@ -7,10 +7,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-/**
- * Talks to the already-running docker-compose stack through api-gateway only, the same way a
- * real client would — no shortcuts to any individual service.
- */
+
 public class GatewayClient {
 
     private static final String BASE_URL = System.getProperty("e2e.gatewayUrl", "http://localhost:8080");
@@ -30,6 +27,10 @@ public class GatewayClient {
 
     public Response getSong(long id) {
         return send(HttpRequest.newBuilder(URI.create(BASE_URL + "/songs/" + id)).GET());
+    }
+
+    public Response get(String path) {
+        return send(HttpRequest.newBuilder(URI.create(BASE_URL + path)).GET());
     }
 
     public Response deleteResources(String idsCsv) {

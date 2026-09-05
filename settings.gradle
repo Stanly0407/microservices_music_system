@@ -7,4 +7,4 @@ pluginManagement {
 
 rootProject.name = 'microservices_music_system'
 
-include 'song-service', 'resource-service', 'resource-processor', 'eureka-server', 'api-gateway', 'e2e-tests'
+include 'song-service', 'resource-service', 'resource-processor', 'eureka-server', 'api-gateway', 'config-server', 'e2e-tests'

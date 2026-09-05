@@ -188,7 +188,7 @@ not affected by `--tests` filtering. So *any* test run in resource-service first
 
 Drives uploading a song critical logic through the real stack
 (`api-gateway` -> `resource-service` -> RabbitMQ -> `resource-processor` -> `song-service`), no
-stubs. 
+stubs.
 
 ```bash
 # 1. Start the full stack
@@ -197,6 +197,14 @@ docker compose up -d --build
 # 2. Wait ~20-30s for services to register with Eureka (check http://localhost:8761),
 #    then run the suite
 ./gradlew :e2e-tests:e2eTest
+```
+
+To point the same suite at a locally-running gateway instead of Docker, override
+`e2e.gatewayUrl`/`e2e.eurekaUrl` (the Eureka-replica-count scenario will fail here, since there's
+only one `song-service` instance locally — run it only against Docker):
+
+```bash
+./gradlew :e2e-tests:e2eTest -De2e.gatewayUrl=http://localhost:8080 -De2e.eurekaUrl=http://localhost:8761
 ```
 
 ### Everything at once
