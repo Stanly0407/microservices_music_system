@@ -1,0 +1,94 @@
+{
+  "title": "Resource Storage Pipeline",
+  "uid": "resource-storage-pipeline",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "STAGING",
+      "description": "Resources currently sitting in the staging bucket, waiting for resource-processor.",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "resource-db-postgres" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM mp3_resources WHERE storage_type = 'STAGING'",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "PERMANENT",
+      "description": "Resources successfully processed and moved to permanent storage.",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "resource-db-postgres" },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM mp3_resources WHERE storage_type = 'PERMANENT'",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Recent Resources",
+      "description": "Upload a file, then watch its row flip from STAGING to PERMANENT as resource-processor finishes.",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "resource-db-postgres" },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT id, storage_type, bucket, path FROM mp3_resources ORDER BY id DESC LIMIT 20",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Resources by Storage Type",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "resource-db-postgres" },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT storage_type, count(*) AS count FROM mp3_resources GROUP BY storage_type ORDER BY storage_type",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
