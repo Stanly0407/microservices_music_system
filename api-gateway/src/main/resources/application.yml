@@ -47,4 +47,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,refresh,busrefresh,info,gateway
+        include: health,refresh,busrefresh,info,gateway,prometheus,metrics
+  endpoint:
+    gateway:
+      access: unrestricted
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        spring.cloud.gateway.requests: true
+  tracing:
+    sampling:
+      probability: 1.0

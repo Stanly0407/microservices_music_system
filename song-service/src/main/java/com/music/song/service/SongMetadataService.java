@@ -3,6 +3,8 @@ package com.music.song.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ import com.music.song.service.utils.SongIdParser;
 @Service
 public class SongMetadataService {
 
+    private static final Logger log = LoggerFactory.getLogger(SongMetadataService.class);
+
     private final SongMetadataRepository repository;
 
     public SongMetadataService(
@@ -30,6 +34,7 @@ public class SongMetadataService {
     @Transactional
     public RecordIdResponse create(SongMetadataRequest request) {
         if (repository.existsById(request.id())) {
+            log.warn("Song metadata already exists for id={}, rejecting", request.id());
             throw new ConflictException("Metadata for resource ID=" + request.id() + " already exists");
         }
         SongMetadata saved = repository.save(new SongMetadata(
@@ -39,6 +44,7 @@ public class SongMetadataService {
                 request.album(),
                 request.duration(),
                 request.year()));
+        log.info("Song metadata saved: id={}, name={}, artist={}", saved.getId(), saved.getName(), saved.getArtist());
         return new RecordIdResponse(saved.getId());
     }
 
@@ -48,7 +54,10 @@ public class SongMetadataService {
         return repository
                 .findById(id)
                 .map(SongMetadataResponse::from)
-                .orElseThrow(() -> new NotFoundException("Song metadata for ID=" + id + " not found"));
+                .orElseThrow(() -> {
+                    log.warn("Song metadata not found: id={}", id);
+                    return new NotFoundException("Song metadata for ID=" + id + " not found");
+                });
     }
 
     @Transactional
@@ -61,6 +70,7 @@ public class SongMetadataService {
                 deletedIds.add(id);
             }
         }
+        log.info("Deleted song metadata: ids={}", deletedIds);
         return new DeletedRecordIdsResponse(deletedIds);
     }
 }
