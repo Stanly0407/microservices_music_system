@@ -1,0 +1,42 @@
+<section class="storages">
+  <h2>Storages</h2>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p>Loading...</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Bucket</th>
+          <th>Path</th>
+          <th *kaHasRoles="['ADMIN']; checkRealm: true"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (storage of storages(); track storage.id) {
+          <tr>
+            <td>{{ storage.storageType }}</td>
+            <td>{{ storage.bucket }}</td>
+            <td>{{ storage.path }}</td>
+            <td *kaHasRoles="['ADMIN']; checkRealm: true">
+              <button type="button" (click)="delete(storage)">Delete</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No entries</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <div *kaHasRoles="['ADMIN']; checkRealm: true">
+    <app-storage-form (created)="reload()" />
+  </div>
+</section>
